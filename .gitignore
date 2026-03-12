@@ -1,0 +1,39 @@
+# Credentials - NEVER sync
+.credentials.json
+
+# Machine-specific permissions
+settings.local.json
+
+# History and caches
+history.jsonl
+stats-cache.json
+
+# Plugin caches and machine-local plugin data
+plugins/cache/
+plugins/config.json
+plugins/blocklist.json
+plugins/install-counts-cache.json
+plugins/marketplaces/
+plugins/repos/
+
+# Session/runtime directories
+todos/
+plans/
+projects/
+cache/
+debug/
+shell-snapshots/
+backups/
+file-history/
+session-env/
+downloads/
+ide/
+statsig/
+telemetry/
+tasks/
+paste-cache/
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
