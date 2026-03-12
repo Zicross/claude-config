@@ -15,6 +15,11 @@ SYNC_FILES=(
     "plugins/known_marketplaces.json"
 )
 
+# Portable directories to sync (relative to ~/.claude/)
+SYNC_DIRS=(
+    "commands"
+)
+
 # Files that need path normalization
 needs_path_normalization() {
     local file="$1"
@@ -80,6 +85,36 @@ do_save() {
         fi
 
         changed=true
+    done
+
+    # Sync directories
+    for dir in "${SYNC_DIRS[@]}"; do
+        local src_dir="$CLAUDE_HOME/$dir"
+        local dst_dir="$REPO_CLAUDE_DIR/$dir"
+
+        if [[ -d "$src_dir" ]]; then
+            mkdir -p "$dst_dir"
+            # Remove files in dest that no longer exist in source
+            if [[ -d "$dst_dir" ]]; then
+                find "$dst_dir" -type f | while read -r f; do
+                    local rel="${f#$dst_dir/}"
+                    if [[ ! -f "$src_dir/$rel" ]]; then
+                        rm "$f"
+                        echo "    [del]  $dir/$rel"
+                    fi
+                done
+            fi
+            # Copy all files from source
+            find "$src_dir" -type f | while read -r f; do
+                local rel="${f#$src_dir/}"
+                mkdir -p "$(dirname "$dst_dir/$rel")"
+                cp "$f" "$dst_dir/$rel"
+                echo "    [copy] $dir/$rel"
+            done
+            changed=true
+        else
+            echo "    [skip] $dir/ (not found)"
+        fi
     done
 
     if [[ "$changed" == false ]]; then
@@ -160,6 +195,24 @@ do_load() {
             echo "    [expd] $file"
         else
             echo "    [copy] $file"
+        fi
+    done
+
+    # Sync directories
+    for dir in "${SYNC_DIRS[@]}"; do
+        local src_dir="$REPO_CLAUDE_DIR/$dir"
+        local dst_dir="$CLAUDE_HOME/$dir"
+
+        if [[ -d "$src_dir" ]]; then
+            mkdir -p "$dst_dir"
+            find "$src_dir" -type f | while read -r f; do
+                local rel="${f#$src_dir/}"
+                mkdir -p "$(dirname "$dst_dir/$rel")"
+                cp "$f" "$dst_dir/$rel"
+                echo "    [copy] $dir/$rel"
+            done
+        else
+            echo "    [skip] $dir/ (not in repo)"
         fi
     done
 
