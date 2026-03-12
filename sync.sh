@@ -18,6 +18,7 @@ SYNC_FILES=(
 # Portable directories to sync (relative to ~/.claude/)
 SYNC_DIRS=(
     "commands"
+    "agents"
 )
 
 # Files that need path normalization
