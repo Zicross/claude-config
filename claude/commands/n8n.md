@@ -55,19 +55,14 @@ curl -s -X PUT -H "X-N8N-API-KEY: $N8N_API_KEY" -H "Content-Type: application/js
   http://localhost:5678/api/v1/workflows/{id}
 ```
 
-**Activate/deactivate:**
+**Activate/deactivate (PATCH not supported — use POST):**
 ```bash
-curl -s -X PATCH -H "X-N8N-API-KEY: $N8N_API_KEY" -H "Content-Type: application/json" \
-  -d '{"active": true}' \
-  http://localhost:5678/api/v1/workflows/{id}
+curl -s -X POST -H "X-N8N-API-KEY: $N8N_API_KEY" http://localhost:5678/api/v1/workflows/{id}/activate
+curl -s -X POST -H "X-N8N-API-KEY: $N8N_API_KEY" http://localhost:5678/api/v1/workflows/{id}/deactivate
 ```
 
-**Execute workflow:**
-```bash
-curl -s -X POST -H "X-N8N-API-KEY: $N8N_API_KEY" -H "Content-Type: application/json" \
-  -d '{"data": {"key": "value"}}' \
-  http://localhost:5678/api/v1/workflows/{id}/run
-```
+**Execute workflow (public API returns 405 — not supported):**
+Manual trigger via n8n UI or wait for scheduled trigger. The MCP `execute-workflow` tool also does not work via the public API.
 
 **Get executions:**
 ```bash
@@ -152,9 +147,10 @@ All Postgres nodes use credential `id: cSvfjSCRPfp5qcYk`, name `QB_Postgres`. Wh
 }
 ```
 
-## Important Reminders
+## Critical Gotchas
 
+- **Active version ≠ draft.** PUT updates the draft, but the running workflow uses a separate **active version** snapshot. After any PUT, you MUST publish by deactivating then reactivating: `POST .../deactivate` then `POST .../activate`. Without this, changes do NOT take effect.
+- **If node v2 options required.** n8n If nodes (typeVersion 2) crash with `Cannot read properties of undefined (reading 'caseSensitive')` when `options` is `{}`. Always include `"caseSensitive": true, "typeValidation": "strict"`.
 - **JSON files on disk ≠ live n8n.** The `n8n-workflows/*.json` files are version-controlled exports. Editing them does NOT update live n8n. Always push changes via MCP or API.
 - **Keep files and live n8n in sync.** After updating live n8n via API, also update the corresponding JSON file on disk so version control stays accurate.
-- **Active workflows update immediately.** A PUT to an active workflow takes effect on the next execution. No restart needed.
 - **Test with inactive workflows first** when making structural changes (new nodes, connection rewiring). Activate after verifying.
