@@ -4,40 +4,40 @@
     "superpowers@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/superpowers/5.0.2",
-        "version": "5.0.2",
+        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/superpowers/5.0.4",
+        "version": "5.0.4",
         "installedAt": "2026-03-07T22:14:25.584Z",
-        "lastUpdated": "2026-03-12T17:15:19.866Z",
+        "lastUpdated": "2026-03-17T20:13:49.333Z",
         "gitCommitSha": "e4a2375cb705ca5800f0833528ce36a3faf9017a"
       }
     ],
     "frontend-design@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/frontend-design/b36fd4b75301",
-        "version": "b36fd4b75301",
+        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/frontend-design/78497c524da3",
+        "version": "78497c524da3",
         "installedAt": "2026-03-07T22:14:44.423Z",
-        "lastUpdated": "2026-03-12T17:15:18.723Z",
+        "lastUpdated": "2026-03-17T20:13:47.684Z",
         "gitCommitSha": "205b6e0b30366a969412d9aab7b99bea99d58db1"
       }
     ],
     "code-review@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/code-review/b36fd4b75301",
-        "version": "b36fd4b75301",
+        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/code-review/78497c524da3",
+        "version": "78497c524da3",
         "installedAt": "2026-03-07T22:14:54.724Z",
-        "lastUpdated": "2026-03-12T17:15:18.721Z",
+        "lastUpdated": "2026-03-17T20:13:47.680Z",
         "gitCommitSha": "205b6e0b30366a969412d9aab7b99bea99d58db1"
       }
     ],
     "github@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/github/b36fd4b75301",
-        "version": "b36fd4b75301",
+        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/github/78497c524da3",
+        "version": "78497c524da3",
         "installedAt": "2026-03-07T22:15:07.339Z",
-        "lastUpdated": "2026-03-12T17:15:18.716Z",
+        "lastUpdated": "2026-03-17T20:13:47.672Z",
         "gitCommitSha": "205b6e0b30366a969412d9aab7b99bea99d58db1"
       }
     ]
