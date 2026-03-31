@@ -4,41 +4,94 @@
     "superpowers@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/superpowers/5.0.5",
-        "version": "5.0.5",
+        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/superpowers/5.0.6",
+        "version": "5.0.6",
         "installedAt": "2026-03-07T22:14:25.584Z",
-        "lastUpdated": "2026-03-18T01:59:52.665Z",
+        "lastUpdated": "2026-03-27T15:35:41.434Z",
         "gitCommitSha": "e4a2375cb705ca5800f0833528ce36a3faf9017a"
       }
     ],
     "frontend-design@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/frontend-design/6b70f99f769f",
-        "version": "6b70f99f769f",
+        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/frontend-design/unknown",
+        "version": "unknown",
         "installedAt": "2026-03-07T22:14:44.423Z",
-        "lastUpdated": "2026-03-18T01:59:51.047Z",
+        "lastUpdated": "2026-03-27T15:54:09.775Z",
         "gitCommitSha": "205b6e0b30366a969412d9aab7b99bea99d58db1"
       }
     ],
     "code-review@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/code-review/6b70f99f769f",
-        "version": "6b70f99f769f",
+        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/code-review/unknown",
+        "version": "unknown",
         "installedAt": "2026-03-07T22:14:54.724Z",
-        "lastUpdated": "2026-03-18T01:59:51.044Z",
+        "lastUpdated": "2026-03-27T15:54:09.774Z",
         "gitCommitSha": "205b6e0b30366a969412d9aab7b99bea99d58db1"
       }
     ],
-    "github@claude-plugins-official": [
+    "context7@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/github/6b70f99f769f",
-        "version": "6b70f99f769f",
-        "installedAt": "2026-03-07T22:15:07.339Z",
-        "lastUpdated": "2026-03-18T01:59:51.040Z",
-        "gitCommitSha": "205b6e0b30366a969412d9aab7b99bea99d58db1"
+        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/context7/unknown",
+        "version": "unknown",
+        "installedAt": "2026-03-30T15:56:20.502Z",
+        "lastUpdated": "2026-03-30T15:56:20.502Z"
+      }
+    ],
+    "code-simplifier@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/code-simplifier/1.0.0",
+        "version": "1.0.0",
+        "installedAt": "2026-03-30T15:56:28.653Z",
+        "lastUpdated": "2026-03-30T15:56:28.653Z"
+      }
+    ],
+    "feature-dev@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/feature-dev/unknown",
+        "version": "unknown",
+        "installedAt": "2026-03-30T15:56:38.612Z",
+        "lastUpdated": "2026-03-30T15:56:38.612Z"
+      }
+    ],
+    "skill-creator@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/skill-creator/unknown",
+        "version": "unknown",
+        "installedAt": "2026-03-30T15:56:43.160Z",
+        "lastUpdated": "2026-03-30T15:56:43.160Z"
+      }
+    ],
+    "security-guidance@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/security-guidance/unknown",
+        "version": "unknown",
+        "installedAt": "2026-03-30T15:56:46.728Z",
+        "lastUpdated": "2026-03-30T15:56:46.728Z"
+      }
+    ],
+    "greptile@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/greptile/unknown",
+        "version": "unknown",
+        "installedAt": "2026-03-30T15:57:18.512Z",
+        "lastUpdated": "2026-03-30T15:57:18.512Z"
+      }
+    ],
+    "rust-analyzer-lsp@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/rust-analyzer-lsp/1.0.0",
+        "version": "1.0.0",
+        "installedAt": "2026-03-30T15:57:30.006Z",
+        "lastUpdated": "2026-03-30T15:57:30.006Z"
       }
     ]
   }
