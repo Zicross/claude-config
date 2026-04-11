@@ -4,10 +4,10 @@
     "superpowers@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/superpowers/5.0.6",
-        "version": "5.0.6",
+        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/superpowers/5.0.7",
+        "version": "5.0.7",
         "installedAt": "2026-03-07T22:14:25.584Z",
-        "lastUpdated": "2026-03-27T15:35:41.434Z",
+        "lastUpdated": "2026-04-02T22:52:02.043Z",
         "gitCommitSha": "e4a2375cb705ca5800f0833528ce36a3faf9017a"
       }
     ],
@@ -65,24 +65,6 @@
         "version": "unknown",
         "installedAt": "2026-03-30T15:56:43.160Z",
         "lastUpdated": "2026-03-30T15:56:43.160Z"
-      }
-    ],
-    "security-guidance@claude-plugins-official": [
-      {
-        "scope": "user",
-        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/security-guidance/unknown",
-        "version": "unknown",
-        "installedAt": "2026-03-30T15:56:46.728Z",
-        "lastUpdated": "2026-03-30T15:56:46.728Z"
-      }
-    ],
-    "greptile@claude-plugins-official": [
-      {
-        "scope": "user",
-        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/greptile/unknown",
-        "version": "unknown",
-        "installedAt": "2026-03-30T15:57:18.512Z",
-        "lastUpdated": "2026-03-30T15:57:18.512Z"
       }
     ],
     "rust-analyzer-lsp@claude-plugins-official": [
