@@ -19,6 +19,7 @@ SYNC_FILES=(
 SYNC_DIRS=(
     "commands"
     "agents"
+    "skills"
 )
 
 # Files that need path normalization
@@ -96,22 +97,33 @@ do_save() {
         if [[ -d "$src_dir" ]]; then
             mkdir -p "$dst_dir"
             # Remove files in dest that no longer exist in source
+            # (also prune any __pycache__/.pyc that slipped in from older syncs)
             if [[ -d "$dst_dir" ]]; then
                 find "$dst_dir" -type f | while read -r f; do
                     local rel="${f#$dst_dir/}"
+                    if [[ "$rel" == *"/__pycache__/"* || "$rel" == *.pyc ]]; then
+                        rm "$f"
+                        echo "    [del]  $dir/$rel"
+                        continue
+                    fi
                     if [[ ! -f "$src_dir/$rel" ]]; then
                         rm "$f"
                         echo "    [del]  $dir/$rel"
                     fi
                 done
+                # Clean up empty __pycache__ directories
+                find "$dst_dir" -type d -name __pycache__ -empty -delete 2>/dev/null || true
             fi
-            # Copy all files from source
-            find "$src_dir" -type f | while read -r f; do
-                local rel="${f#$src_dir/}"
-                mkdir -p "$(dirname "$dst_dir/$rel")"
-                cp "$f" "$dst_dir/$rel"
-                echo "    [copy] $dir/$rel"
-            done
+            # Copy all files from source, skipping Python build artifacts
+            find "$src_dir" -type f \
+                ! -path '*/__pycache__/*' \
+                ! -name '*.pyc' \
+                | while read -r f; do
+                    local rel="${f#$src_dir/}"
+                    mkdir -p "$(dirname "$dst_dir/$rel")"
+                    cp "$f" "$dst_dir/$rel"
+                    echo "    [copy] $dir/$rel"
+                done
             changed=true
         else
             echo "    [skip] $dir/ (not found)"
