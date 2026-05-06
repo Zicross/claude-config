@@ -4,10 +4,10 @@
     "superpowers@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/superpowers/5.0.7",
-        "version": "5.0.7",
+        "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/superpowers/5.1.0",
+        "version": "5.1.0",
         "installedAt": "2026-03-07T22:14:25.584Z",
-        "lastUpdated": "2026-04-02T22:52:02.043Z",
+        "lastUpdated": "2026-05-06T17:17:47.418Z",
         "gitCommitSha": "e4a2375cb705ca5800f0833528ce36a3faf9017a"
       }
     ],
@@ -17,7 +17,7 @@
         "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/frontend-design/unknown",
         "version": "unknown",
         "installedAt": "2026-03-07T22:14:44.423Z",
-        "lastUpdated": "2026-03-27T15:54:09.775Z",
+        "lastUpdated": "2026-04-15T00:23:14.358Z",
         "gitCommitSha": "205b6e0b30366a969412d9aab7b99bea99d58db1"
       }
     ],
@@ -27,7 +27,7 @@
         "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/code-review/unknown",
         "version": "unknown",
         "installedAt": "2026-03-07T22:14:54.724Z",
-        "lastUpdated": "2026-03-27T15:54:09.774Z",
+        "lastUpdated": "2026-04-15T00:23:14.356Z",
         "gitCommitSha": "205b6e0b30366a969412d9aab7b99bea99d58db1"
       }
     ],
@@ -37,7 +37,7 @@
         "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/context7/unknown",
         "version": "unknown",
         "installedAt": "2026-03-30T15:56:20.502Z",
-        "lastUpdated": "2026-03-30T15:56:20.502Z"
+        "lastUpdated": "2026-04-15T00:23:14.354Z"
       }
     ],
     "code-simplifier@claude-plugins-official": [
@@ -55,7 +55,7 @@
         "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/feature-dev/unknown",
         "version": "unknown",
         "installedAt": "2026-03-30T15:56:38.612Z",
-        "lastUpdated": "2026-03-30T15:56:38.612Z"
+        "lastUpdated": "2026-04-15T00:23:14.359Z"
       }
     ],
     "skill-creator@claude-plugins-official": [
@@ -64,7 +64,7 @@
         "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/skill-creator/unknown",
         "version": "unknown",
         "installedAt": "2026-03-30T15:56:43.160Z",
-        "lastUpdated": "2026-03-30T15:56:43.160Z"
+        "lastUpdated": "2026-04-15T00:23:14.357Z"
       }
     ],
     "rust-analyzer-lsp@claude-plugins-official": [
@@ -74,6 +74,16 @@
         "version": "1.0.0",
         "installedAt": "2026-03-30T15:57:30.006Z",
         "lastUpdated": "2026-03-30T15:57:30.006Z"
+      }
+    ],
+    "codex@openai-codex": [
+      {
+        "scope": "user",
+        "installPath": "__CLAUDE_HOME__/plugins/cache/openai-codex/codex/1.0.4",
+        "version": "1.0.4",
+        "installedAt": "2026-04-25T18:47:06.444Z",
+        "lastUpdated": "2026-04-25T18:47:06.444Z",
+        "gitCommitSha": "807e03ac9d5aa23bc395fdec8c3767500a86b3cf"
       }
     ]
   }
