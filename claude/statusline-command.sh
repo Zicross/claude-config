@@ -54,8 +54,8 @@ user=$(whoami 2>/dev/null)
 
 # Shorten cwd: replace home prefix with ~
 case "$cwd" in
-  /c/Users/$user/*) cwd="~${cwd#/c/Users/$user}" ;;
-  /c/Users/$user)   cwd="~" ;;
+  "$HOME"/*) cwd="~${cwd#"$HOME"}" ;;
+  "$HOME")   cwd="~" ;;
 esac
 
 # Git branch
@@ -110,12 +110,12 @@ esac
 # can mentally compare against their current clock (5-minute warm window).
 # Shows nothing if no API call has happened yet (current_usage is null).
 
-CACHE_TS_FILE="/c/Users/isaac/.claude/cache_last_write.ts"
+CACHE_TS_FILE="$HOME/.claude/cache_last_write.ts"
 CACHE_TTL=300   # Anthropic cache TTL in seconds
 
 # Clean up stale files from the old background-timer approach.
-rm -f "/c/Users/isaac/.claude/cache_countdown.txt" \
-      "/c/Users/isaac/.claude/cache_timer.pid" 2>/dev/null
+rm -f "$HOME/.claude/cache_countdown.txt" \
+      "$HOME/.claude/cache_timer.pid" 2>/dev/null
 
 cache_seg=""
 savings_seg=""
