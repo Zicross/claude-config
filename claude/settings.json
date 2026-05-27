@@ -2,19 +2,6 @@
     "permissions":  {
                         "defaultMode":  "bypassPermissions"
                     },
-    "hooks":  {
-                  "Stop":  [
-                               {
-                                   "matcher":  "",
-                                   "hooks":  [
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"C:\\Users\\isaac\\github\\Meta-engineering\\bin\\meter-stop-hook.ps1\""
-                                                 }
-                                             ]
-                               }
-                           ]
-              },
     "statusLine":  {
                        "type":  "command",
                        "command":  "bash __CLAUDE_HOME_POSIX__/statusline-command.sh"
