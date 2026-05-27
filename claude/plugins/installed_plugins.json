@@ -17,8 +17,8 @@
         "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/frontend-design/unknown",
         "version": "unknown",
         "installedAt": "2026-03-07T22:14:44.423Z",
-        "lastUpdated": "2026-04-15T00:23:14.358Z",
-        "gitCommitSha": "205b6e0b30366a969412d9aab7b99bea99d58db1"
+        "lastUpdated": "2026-05-20T04:37:42.798Z",
+        "gitCommitSha": "6a05dc286dcfa0f524d5c1f94fd513d2956fa494"
       }
     ],
     "code-review@claude-plugins-official": [
@@ -27,8 +27,8 @@
         "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/code-review/unknown",
         "version": "unknown",
         "installedAt": "2026-03-07T22:14:54.724Z",
-        "lastUpdated": "2026-04-15T00:23:14.356Z",
-        "gitCommitSha": "205b6e0b30366a969412d9aab7b99bea99d58db1"
+        "lastUpdated": "2026-05-20T04:37:42.805Z",
+        "gitCommitSha": "6a05dc286dcfa0f524d5c1f94fd513d2956fa494"
       }
     ],
     "context7@claude-plugins-official": [
@@ -37,7 +37,8 @@
         "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/context7/unknown",
         "version": "unknown",
         "installedAt": "2026-03-30T15:56:20.502Z",
-        "lastUpdated": "2026-04-15T00:23:14.354Z"
+        "lastUpdated": "2026-05-20T04:37:42.804Z",
+        "gitCommitSha": "6a05dc286dcfa0f524d5c1f94fd513d2956fa494"
       }
     ],
     "code-simplifier@claude-plugins-official": [
@@ -55,7 +56,8 @@
         "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/feature-dev/unknown",
         "version": "unknown",
         "installedAt": "2026-03-30T15:56:38.612Z",
-        "lastUpdated": "2026-04-15T00:23:14.359Z"
+        "lastUpdated": "2026-05-20T04:37:42.801Z",
+        "gitCommitSha": "6a05dc286dcfa0f524d5c1f94fd513d2956fa494"
       }
     ],
     "skill-creator@claude-plugins-official": [
@@ -64,7 +66,8 @@
         "installPath": "__CLAUDE_HOME__/plugins/cache/claude-plugins-official/skill-creator/unknown",
         "version": "unknown",
         "installedAt": "2026-03-30T15:56:43.160Z",
-        "lastUpdated": "2026-04-15T00:23:14.357Z"
+        "lastUpdated": "2026-05-20T04:37:42.806Z",
+        "gitCommitSha": "6a05dc286dcfa0f524d5c1f94fd513d2956fa494"
       }
     ],
     "rust-analyzer-lsp@claude-plugins-official": [

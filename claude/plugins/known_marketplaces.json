@@ -5,7 +5,7 @@
       "repo": "anthropics/claude-plugins-official"
     },
     "installLocation": "__CLAUDE_HOME__/plugins/marketplaces/claude-plugins-official",
-    "lastUpdated": "2026-05-06T17:17:42.480Z"
+    "lastUpdated": "2026-05-26T20:53:18.962Z"
   },
   "openai-codex": {
     "source": {
