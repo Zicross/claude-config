@@ -17,7 +17,7 @@
               },
     "statusLine":  {
                        "type":  "command",
-                       "command":  "bash /c/Users/isaac/.claude/statusline-command.sh"
+                       "command":  "bash __CLAUDE_HOME_POSIX__/statusline-command.sh"
                    },
     "enabledPlugins":  {
                            "superpowers@claude-plugins-official":  true,
