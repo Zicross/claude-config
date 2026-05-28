@@ -27,7 +27,7 @@ SYNC_DIRS=(
 needs_path_normalization() {
     local file="$1"
     case "$file" in
-        plugins/installed_plugins.json|plugins/known_marketplaces.json)
+        settings.json|plugins/installed_plugins.json|plugins/known_marketplaces.json)
             return 0 ;;
         *)
             return 1 ;;
