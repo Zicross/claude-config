@@ -11,6 +11,7 @@ CLAUDE_HOME="$HOME/.claude"
 SYNC_FILES=(
     "settings.json"
     "CLAUDE.md"
+    "statusline-command.sh"
     "plugins/installed_plugins.json"
     "plugins/known_marketplaces.json"
 )
