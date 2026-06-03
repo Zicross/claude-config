@@ -77,11 +77,18 @@ do_save() {
             continue
         fi
 
+        # In the Linux symlink model the source IS the repo file (symlinked).
+        # Nothing to save — it is edited in the repo directly.
+        if [[ "$src" -ef "$dst" ]]; then
+            echo "    [same] $file (symlinked to repo)"
+            continue
+        fi
+
         mkdir -p "$(dirname "$dst")"
         cp "$src" "$dst"
 
         if needs_path_normalization "$file"; then
-            node "$REPO_DIR/normalize.js" normalize "$dst"
+            bash "$REPO_DIR/normalize.sh" normalize "$dst"
             echo "    [norm] $file"
         else
             echo "    [copy] $file"
@@ -94,6 +101,11 @@ do_save() {
     for dir in "${SYNC_DIRS[@]}"; do
         local src_dir="$CLAUDE_HOME/$dir"
         local dst_dir="$REPO_CLAUDE_DIR/$dir"
+
+        if [[ "$src_dir" -ef "$dst_dir" ]]; then
+            echo "    [same] $dir/ (symlinked to repo)"
+            continue
+        fi
 
         if [[ -d "$src_dir" ]]; then
             mkdir -p "$dst_dir"
@@ -205,7 +217,7 @@ do_load() {
         cp "$src" "$dst"
 
         if needs_path_normalization "$file"; then
-            node "$REPO_DIR/normalize.js" expand "$dst"
+            bash "$REPO_DIR/normalize.sh" expand "$dst"
             echo "    [expd] $file"
         else
             echo "    [copy] $file"
