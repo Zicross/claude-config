@@ -57,11 +57,28 @@ is kept out of the login hook on purpose (so a slow network never hangs a login)
 
 ## Updating the config
 
-Edit in the repo, push, and everyone picks it up:
+Two directions: **pulling** an update onto a machine, and **authoring** a change
+then pushing it.
+
+### Pull the latest onto a machine
 
 ```bash
-sudo -e /opt/claude-config/claude/CLAUDE.md     # or edit any repo file
-git -C /opt/claude-config commit -am "update"   # as the repo owner
+# One command to update this machine AND redeploy to every user:
+sudo bash /opt/claude-config/bootstrap.sh
+
+# Or just pull — each user redeploys themselves on next login, because the hook
+# notices the new revision:
+git -C /opt/claude-config pull
+```
+
+`bootstrap.sh` pulls first (pass `--no-pull` to skip), so it is the single command
+to bring a machine and everyone on it fully up to date.
+
+### Author a change and push
+
+```bash
+sudoedit /opt/claude-config/claude/CLAUDE.md      # or edit any repo file
+git -C /opt/claude-config commit -am "update"     # as the repo owner
 git -C /opt/claude-config push
 # users redeploy on next login, or force it now:
 sudo bash /opt/claude-config/bootstrap.sh
@@ -69,7 +86,8 @@ sudo bash /opt/claude-config/bootstrap.sh
 
 Because the symlinked items live in the repo, editing
 `/opt/claude-config/claude/CLAUDE.md` (etc.) immediately changes the live config
-for everyone whose `~/.claude/CLAUDE.md` points at it.
+for everyone whose `~/.claude/CLAUDE.md` points at it. (Pushing still matters so
+*other* machines get it.)
 
 ### Capturing live settings back to the repo — `sync.sh save`
 
