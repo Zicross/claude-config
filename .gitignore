@@ -16,9 +16,9 @@ plugins/install-counts-cache.json
 plugins/marketplaces/
 plugins/repos/
 
-# Session/runtime directories
+# Session/runtime directories (root-level only; anchored so docs/plans is tracked)
 todos/
-plans/
+/plans/
 projects/
 cache/
 debug/
