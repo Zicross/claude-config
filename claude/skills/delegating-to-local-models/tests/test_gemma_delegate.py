@@ -51,3 +51,21 @@ def test_sensitivity_defaults_and_allows():
     # default project is revenant (fail-safe) — caller passes it explicitly in main()
     gd.enforce_sensitivity("revenant", "gemma4:12b")   # allowed, no raise
     gd.enforce_sensitivity("generic", "qwen3:8b")      # generic may use qwen3
+
+
+def test_estimate_tokens_and_fit():
+    assert gd.estimate_tokens("x" * 350) == pytest.approx(100, abs=2)
+    gd.ensure_context_fit("short prompt", num_ctx=16384, reserve=2048)  # ok
+    with pytest.raises(gd.DelegateError) as e:
+        gd.ensure_context_fit("x" * 100000, num_ctx=4096, reserve=2048)
+    assert e.value.exit_code == 4
+
+
+def test_build_payload_shape():
+    p = gd.build_payload("gemma4:12b", "SYS", "do X", num_ctx=8192,
+                         num_predict=500, temperature=0.1, keep_alive="20m")
+    assert p["model"] == "gemma4:12b"
+    assert p["think"] is False and p["stream"] is False
+    assert p["options"]["num_ctx"] == 8192
+    assert p["messages"][0]["role"] == "system"
+    assert p["messages"][-1]["content"] == "do X"

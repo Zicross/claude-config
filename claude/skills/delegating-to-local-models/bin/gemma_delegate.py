@@ -53,3 +53,33 @@ def enforce_sensitivity(project, model):
             f"REFUSED: project={project!r} is sensitive; model {model!r} is "
             f"Chinese-origin. REVENANT work must never go to qwen3/MiniMax/DeepSeek.",
             exit_code=3)
+
+
+def estimate_tokens(text):
+    return math.ceil(len(text) / 3.5)
+
+
+def ensure_context_fit(prompt, num_ctx, reserve):
+    need = estimate_tokens(prompt) + reserve
+    if need > num_ctx:
+        raise DelegateError(
+            f"Prompt ~{estimate_tokens(prompt)} tok + {reserve} reserve exceeds "
+            f"num_ctx={num_ctx}. Raise --num-ctx, chunk, or trim --files.", exit_code=4)
+
+
+def build_prompt(task, files_content):
+    if files_content:
+        return f"{task}\n\n--- FILES ---\n{files_content}"
+    return task
+
+
+def build_payload(model, system, prompt, num_ctx, num_predict, temperature, keep_alive):
+    messages = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    messages.append({"role": "user", "content": prompt})
+    return {
+        "model": model, "messages": messages,
+        "think": False, "stream": False, "keep_alive": keep_alive,
+        "options": {"num_ctx": num_ctx, "num_predict": num_predict, "temperature": temperature},
+    }
