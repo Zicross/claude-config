@@ -37,3 +37,8 @@ paste-cache/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Local delegation config holds real network endpoints — never commit.
+**/gemma-delegate.toml
+!**/gemma-delegate.toml.example
+**/gemma-delegate*.local.toml
