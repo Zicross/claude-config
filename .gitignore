@@ -38,6 +38,10 @@ paste-cache/
 Thumbs.db
 desktop.ini
 
+# Python bytecode caches (from the delegating-to-local-models skill's tests)
+__pycache__/
+*.pyc
+
 # Local delegation config holds real network endpoints — never commit.
 **/gemma-delegate.toml
 !**/gemma-delegate.toml.example
