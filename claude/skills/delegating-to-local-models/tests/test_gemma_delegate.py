@@ -1,4 +1,4 @@
-import importlib.util, pathlib, pytest
+import importlib.util, pathlib, pytest, urllib.error
 _spec = importlib.util.spec_from_file_location(
     "gemma_delegate",
     pathlib.Path(__file__).parent.parent / "bin" / "gemma_delegate.py")
@@ -76,3 +76,54 @@ def test_truncation_detection():
     with pytest.raises(gd.DelegateError) as e:
         gd.check_truncation({"done_reason": "length", "message": {"content": "half"}})
     assert e.value.exit_code == 7
+
+
+def _cfg():
+    return {"endpoints": {"laptop": "http://lap", "qwen3": "http://q"},
+            "models": dict(gd.MODEL_DEFAULTS), "defaults": dict(gd.DEFAULTS)}
+
+
+def test_delegate_success():
+    def fake(endpoint, payload, timeout):
+        return {"done_reason": "stop", "message": {"content": "RESULT"},
+                "_endpoint": endpoint, "_model": payload["model"]}
+    out = gd.delegate(task="do X", project="revenant", tier="quality",
+                      model_override=None, files=[], num_ctx=8192, num_predict=500,
+                      system=None, config=_cfg(), transport=fake)
+    assert out["message"]["content"] == "RESULT"
+    assert out["_endpoint"] == "http://lap" and out["_model"] == "gemma4:12b"
+
+
+def test_delegate_revenant_unreachable_exits_6():
+    def down(endpoint, payload, timeout):
+        raise urllib.error.URLError("unreachable")
+    with pytest.raises(gd.DelegateError) as e:
+        gd.delegate(task="x", project="revenant", tier="quality", model_override=None,
+                    files=[], num_ctx=8192, num_predict=500, system=None,
+                    config=_cfg(), transport=down)
+    assert e.value.exit_code == 6  # never falls back to qwen3
+
+
+def test_delegate_generic_falls_back_to_qwen3():
+    calls = []
+    def transport(endpoint, payload, timeout):
+        calls.append((endpoint, payload["model"]))
+        if endpoint == "http://lap":
+            raise urllib.error.URLError("laptop down")
+        return {"done_reason": "stop", "message": {"content": "Q"}}
+    out = gd.delegate(task="x", project="generic", tier="quality", model_override=None,
+                      files=[], num_ctx=8192, num_predict=500, system=None,
+                      config=_cfg(), transport=transport)
+    assert out["message"]["content"] == "Q"
+    assert calls[0][0] == "http://lap"
+    assert calls[1] == ("http://q", "qwen3:8b")  # swapped endpoint AND model
+
+
+def test_delegate_generic_all_down_exits_5():
+    def down(endpoint, payload, timeout):
+        raise urllib.error.URLError("down")
+    with pytest.raises(gd.DelegateError) as e:
+        gd.delegate(task="x", project="generic", tier="quality", model_override=None,
+                    files=[], num_ctx=8192, num_predict=500, system=None,
+                    config=_cfg(), transport=down)
+    assert e.value.exit_code == 5

@@ -90,3 +90,54 @@ def check_truncation(resp):
         raise DelegateError(
             "Output was TRUNCATED (done_reason=length). Re-run with a larger "
             "--num-predict; do not trust this partial output.", exit_code=7)
+
+
+def post_chat(endpoint, payload, timeout):
+    """Network boundary. Raises urllib.error.URLError on failure."""
+    req = urllib.request.Request(
+        endpoint.rstrip("/") + "/api/chat",
+        data=json.dumps(payload).encode(),
+        headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.load(r)
+
+
+def read_files(paths):
+    chunks = []
+    for p in paths:
+        with open(p, "r", encoding="utf-8") as f:
+            chunks.append(f"# file: {p}\n{f.read()}")
+    return "\n\n".join(chunks)
+
+
+def delegate(task, project, tier, model_override, files, num_ctx, num_predict,
+             system, config, transport=None, timeout=600):
+    # Resolve at call time (NOT a default arg) so tests can monkeypatch post_chat
+    # and main() picks up the module-level name.
+    if transport is None:
+        transport = post_chat
+    model = resolve_model(tier, model_override, config["models"])
+    enforce_sensitivity(project, model)            # guard the primary model
+    prompt = build_prompt(task, read_files(files) if files else "")
+    ensure_context_fit(prompt, num_ctx, reserve=num_predict)
+    payload = build_payload(model, system, prompt, num_ctx, num_predict,
+                            config["defaults"]["temperature"], config["defaults"]["keep_alive"])
+    try:
+        resp = transport(config["endpoints"]["laptop"], payload, timeout)
+    except (urllib.error.URLError, ConnectionError, TimeoutError, OSError):
+        if project != "generic":
+            raise DelegateError(
+                "Laptop unreachable and project is sensitive — qwen3 fallback is "
+                "forbidden. Claude must do this work itself.", exit_code=6)
+        qendpoint = config["endpoints"].get("qwen3")
+        qmodel = config["models"]["qwen3"]
+        if not qendpoint:
+            raise DelegateError("Laptop down and no qwen3 endpoint configured.", exit_code=5)
+        enforce_sensitivity(project, qmodel)       # generic → allowed
+        payload["model"] = qmodel
+        try:
+            resp = transport(qendpoint, payload, timeout)
+        except (urllib.error.URLError, ConnectionError, TimeoutError, OSError):
+            raise DelegateError("Laptop and qwen3 both unreachable.", exit_code=5)
+    check_truncation(resp)
+    return resp
