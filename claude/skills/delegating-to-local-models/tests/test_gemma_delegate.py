@@ -127,3 +127,21 @@ def test_delegate_generic_all_down_exits_5():
                     files=[], num_ctx=8192, num_predict=500, system=None,
                     config=_cfg(), transport=down)
     assert e.value.exit_code == 5
+
+
+def test_main_success_prints_content(monkeypatch, capsys, tmp_path):
+    cfg = tmp_path / "c.toml"
+    cfg.write_text('[endpoints]\nlaptop="http://lap"\nqwen3="http://q"\n')
+    monkeypatch.setenv("GEMMA_DELEGATE_CONFIG", str(cfg))
+    monkeypatch.setattr(gd, "post_chat",
+        lambda e, p, t: {"done_reason": "stop", "message": {"content": "HELLO"}})
+    rc = gd.main(["--task", "hi", "--project", "generic"])
+    assert rc == 0
+    assert "HELLO" in capsys.readouterr().out
+
+
+def test_main_sensitivity_refusal_exit_3(monkeypatch, tmp_path):
+    cfg = tmp_path / "c.toml"; cfg.write_text('[endpoints]\nlaptop="http://lap"\n')
+    monkeypatch.setenv("GEMMA_DELEGATE_CONFIG", str(cfg))
+    rc = gd.main(["--task", "x", "--project", "revenant", "--model", "qwen3:8b"])
+    assert rc == 3  # default project revenant + explicit chinese model

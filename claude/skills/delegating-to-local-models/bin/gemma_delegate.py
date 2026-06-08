@@ -141,3 +141,46 @@ def delegate(task, project, tier, model_override, files, num_ctx, num_predict,
             raise DelegateError("Laptop and qwen3 both unreachable.", exit_code=5)
     check_truncation(resp)
     return resp
+
+
+def _config_path(env):
+    return env.get("GEMMA_DELEGATE_CONFIG") or os.path.expanduser(
+        "~/.config/gemma-delegate/config.toml")
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(prog="gemma-delegate")
+    ap.add_argument("--task", help="task text (or pass on stdin)")
+    ap.add_argument("--project", choices=["revenant", "generic"], default="revenant",
+                    help="sensitivity context; default 'revenant' (fail-safe)")
+    ap.add_argument("--tier", choices=["quality", "fast"], default="quality")
+    ap.add_argument("--model", default=None, help="explicit model override")
+    ap.add_argument("--files", nargs="*", default=[])
+    ap.add_argument("--num-ctx", type=int, default=None)
+    ap.add_argument("--num-predict", type=int, default=None)
+    ap.add_argument("--system", default=None)
+    ap.add_argument("--raw", action="store_true", help="print full JSON")
+    args = ap.parse_args(argv)
+    task = args.task if args.task is not None else sys.stdin.read()
+    if not task.strip():
+        print("error: empty task (pass --task or stdin)", file=sys.stderr)
+        return 2
+    try:
+        config = load_config(os.environ, _config_path(os.environ))
+        num_ctx = args.num_ctx or config["defaults"]["num_ctx"]
+        num_predict = args.num_predict or config["defaults"]["num_predict"]
+        resp = delegate(task=task, project=args.project, tier=args.tier,
+                        model_override=args.model, files=args.files, num_ctx=num_ctx,
+                        num_predict=num_predict, system=args.system, config=config)
+    except DelegateError as e:
+        print(f"gemma-delegate: {e}", file=sys.stderr)
+        return e.exit_code
+    if args.raw:
+        print(json.dumps(resp, indent=2))
+    else:
+        print(resp.get("message", {}).get("content", ""))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
