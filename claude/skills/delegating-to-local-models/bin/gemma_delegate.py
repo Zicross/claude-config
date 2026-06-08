@@ -83,3 +83,10 @@ def build_payload(model, system, prompt, num_ctx, num_predict, temperature, keep
         "think": False, "stream": False, "keep_alive": keep_alive,
         "options": {"num_ctx": num_ctx, "num_predict": num_predict, "temperature": temperature},
     }
+
+
+def check_truncation(resp):
+    if resp.get("done_reason") == "length":
+        raise DelegateError(
+            "Output was TRUNCATED (done_reason=length). Re-run with a larger "
+            "--num-predict; do not trust this partial output.", exit_code=7)

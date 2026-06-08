@@ -69,3 +69,10 @@ def test_build_payload_shape():
     assert p["options"]["num_ctx"] == 8192
     assert p["messages"][0]["role"] == "system"
     assert p["messages"][-1]["content"] == "do X"
+
+
+def test_truncation_detection():
+    gd.check_truncation({"done_reason": "stop", "message": {"content": "ok"}})  # no raise
+    with pytest.raises(gd.DelegateError) as e:
+        gd.check_truncation({"done_reason": "length", "message": {"content": "half"}})
+    assert e.value.exit_code == 7
