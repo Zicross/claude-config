@@ -31,3 +31,25 @@ def load_config(env, config_path):
             "No laptop endpoint configured. Set [endpoints].laptop in "
             "~/.config/gemma-delegate/config.toml or GEMMA_DELEGATE_LAPTOP.", exit_code=2)
     return {"endpoints": endpoints, "models": models, "defaults": defaults}
+
+
+def is_chinese_model(tag):
+    t = tag.lower()
+    return any(m in t for m in CHINESE_MARKERS)
+
+
+def resolve_model(tier, model_override, models):
+    if model_override:
+        return model_override
+    if tier not in ("quality", "fast"):
+        raise DelegateError(f"unknown tier {tier!r}", exit_code=2)
+    return models[tier]
+
+
+def enforce_sensitivity(project, model):
+    # Fail-safe: anything not explicitly 'generic' is treated as sensitive.
+    if project != "generic" and is_chinese_model(model):
+        raise DelegateError(
+            f"REFUSED: project={project!r} is sensitive; model {model!r} is "
+            f"Chinese-origin. REVENANT work must never go to qwen3/MiniMax/DeepSeek.",
+            exit_code=3)
