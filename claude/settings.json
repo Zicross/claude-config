@@ -28,5 +28,6 @@
   },
   "alwaysThinkingEnabled": true,
   "effortLevel": "high",
-  "autoUpdatesChannel": "latest"
+  "autoUpdatesChannel": "latest",
+  "autoUpdates": true
 }

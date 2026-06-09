@@ -74,6 +74,12 @@ if [ -d "$CC_REPO" ] && [ -n "${HOME:-}" ] && [ -d "$HOME" ] && command -v bash 
     if [ "$(cat "$HOME/.claude/.deployed-rev" 2>/dev/null || echo none)" != "$_cc_rev" ]; then
         bash "$CC_REPO/deploy-claude-config.sh" "$HOME" >/dev/null 2>&1 || true
     fi
+    # Provision a per-user native Claude binary in the background if missing, so
+    # each account becomes a self-updating native install. The shared /opt build
+    # serves immediately; this never blocks login (the download is backgrounded).
+    if [ ! -x "$HOME/.local/bin/claude" ] && command -v claude >/dev/null 2>&1; then
+        ( nohup claude install latest </dev/null >/dev/null 2>&1 & ) >/dev/null 2>&1 || true
+    fi
     unset _cc_rev
 fi
 HOOK

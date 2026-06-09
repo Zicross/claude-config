@@ -147,3 +147,22 @@ machines and users. `normalize.sh` (pure Bash — no Node, no Python) handles th
 | `sync.sh` | author changes back to the repo (`save`) / single-user deploy (`load`) |
 | `normalize.sh` | pure-Bash path normalization |
 | `claude/` | the actual config (CLAUDE.md, skills, commands, settings, plugin manifests) |
+
+## The `claude` binary (separate from the config)
+
+claude-config manages **configuration only**. The `claude` *binary* is handled
+independently:
+
+- Each human account runs a **per-user native install** under `~/.local`, with
+  `autoUpdates: true` (set in the shared `settings.json`), so every account
+  self-updates to the latest release with **no root required** and they all
+  converge on the same version.
+- A shared fallback at `/usr/local/bin/claude` -> `/opt/claude-bin/<version>`
+  gives brand-new accounts a working `claude` instantly (zero network) before
+  their native install lands.
+- The login hook bootstraps the native install: on login, if
+  `~/.local/bin/claude` is missing, it runs `claude install latest` in the
+  background (non-blocking -- login never waits on the download).
+
+Bumping the `/opt` fallback is a manual root op and only matters for the
+first-login window; native auto-update keeps everyone current after that.
