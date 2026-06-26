@@ -21,3 +21,17 @@ Hard rule: **never send REVENANT-related work to a Chinese-origin model**
 (qwen3/MiniMax/DeepSeek). `gemma-delegate --project` defaults to the safe branch.
 Never commit unreviewed model output.
 <!-- END orchestration-delegation -->
+
+<!-- BEGIN host-capabilities (managed; do not merge into substrate block) -->
+## Host capabilities
+
+- **Passwordless sudo (host-conditional).** On any host where `sudo -n true` succeeds, you have
+  non-interactive sudo — run privileged steps (package installs, device/file perms, systemd/udev
+  edits, container provisioning) directly in the normal Bash flow rather than punting them to the
+  operator as interactive `! <command>` hand-offs. Confirmed on the current dev box (`zicrone-1`)
+  for **both** the `dev` and `mattdev` accounts (2026-06-26); with sudo, either account can also
+  read/repair the other's per-user state. This is host-specific — re-check with `sudo -n true` on
+  any other machine and do not assume it elsewhere. Still governed by the usual guardrails:
+  destructive/irreversible or outward-facing actions are confirmed first, and any project
+  data-policy overrides.
+<!-- END host-capabilities -->
