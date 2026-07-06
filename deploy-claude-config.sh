@@ -7,10 +7,13 @@
 #   symlink  -> CLAUDE.md, statusline-command.sh, skills/, commands/, agents/
 #               (never written by Claude at runtime; symlinked to the shared repo
 #                so `git pull` in the repo updates every user instantly)
-#   copy+exp -> settings.json, plugins/installed_plugins.json,
-#               plugins/known_marketplaces.json
-#               (Claude rewrites these at runtime and they embed per-user paths,
-#                so they are real local files, path-expanded for this home)
+#   copy+exp -> settings.json
+#               (repo copy authoritative; path-expanded for this home)
+#   seed-once -> plugins/installed_plugins.json, plugins/known_marketplaces.json
+#               (Claude OWNS these at runtime: installed plugin versions +
+#                marketplace state. Deployed ONLY when absent, so a login-hook
+#                redeploy never reverts live plugin/marketplace state. The repo
+#                copy is the provisioning manifest read by restore-plugins.sh.)
 #
 # Run by root for another user's home -> files are chown'd to that user.
 # Run by a user for their own home (e.g. from the login hook) -> no chown needed.
@@ -32,7 +35,11 @@ fi
 CLAUDE_DIR="$HOME_DIR/.claude"
 
 SYMLINK_ITEMS=(CLAUDE.md statusline-command.sh skills commands agents)
-EXPAND_FILES=(settings.json plugins/installed_plugins.json plugins/known_marketplaces.json)
+EXPAND_FILES=(settings.json)
+# Runtime-owned by Claude Code; deployed only if ABSENT (seed once), never
+# overwritten -- otherwise every login reverts plugin versions + marketplace
+# state and the plugin manager reports corrupted marketplaces.
+SEED_FILES=(plugins/installed_plugins.json plugins/known_marketplaces.json)
 
 mkdir -p "$CLAUDE_DIR/plugins"
 
@@ -61,6 +68,20 @@ if ! $SKEL; then
         cp "$src" "$dst"
         bash "$REPO_DIR/normalize.sh" expand "$dst" "$CLAUDE_DIR" >/dev/null
         echo "    [expd] $rel"
+    done
+    # Seed-once tier: Claude owns these at runtime -- deploy only when missing.
+    for rel in "${SEED_FILES[@]}"; do
+        src="$REPO_CLAUDE/$rel"
+        dst="$CLAUDE_DIR/$rel"
+        [[ -f "$src" ]] || { echo "    [skip] $rel (not in repo)"; continue; }
+        if [[ -e "$dst" ]]; then
+            echo "    [keep] $rel (runtime-owned, exists)"
+            continue
+        fi
+        mkdir -p "$(dirname "$dst")"
+        cp "$src" "$dst"
+        bash "$REPO_DIR/normalize.sh" expand "$dst" "$CLAUDE_DIR" >/dev/null
+        echo "    [seed] $rel"
     done
     # Record the deployed repo revision so the login hook can detect staleness.
     if rev="$(git -C "$REPO_DIR" rev-parse HEAD 2>/dev/null)"; then
