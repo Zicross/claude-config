@@ -35,7 +35,11 @@ fi
 CLAUDE_DIR="$HOME_DIR/.claude"
 
 SYMLINK_ITEMS=(CLAUDE.md statusline-command.sh skills commands agents)
-EXPAND_FILES=(settings.json)
+# settings.json is MERGED, not overwritten: the keys below are taken from the
+# repo (central config), everything else -- enabledPlugins, model, effortLevel,
+# UI prefs -- is preserved from the live file Claude Code writes at runtime.
+# Move a key in/out of this list to change what central config controls.
+SETTINGS_AUTHORITATIVE_KEYS="permissions statusLine extraKnownMarketplaces autoUpdates autoUpdatesChannel"
 # Runtime-owned by Claude Code; deployed only if ABSENT (seed once), never
 # overwritten -- otherwise every login reverts plugin versions + marketplace
 # state and the plugin manager reports corrupted marketplaces.
@@ -60,15 +64,32 @@ done
 
 # ── Copy + expand tier ─────────────────────────────────────────
 if ! $SKEL; then
-    for rel in "${EXPAND_FILES[@]}"; do
-        src="$REPO_CLAUDE/$rel"
-        dst="$CLAUDE_DIR/$rel"
-        [[ -f "$src" ]] || { echo "    [skip] $rel (not in repo)"; continue; }
+    # ── settings.json: seed if absent, else merge central keys onto live ──
+    src="$REPO_CLAUDE/settings.json"
+    dst="$CLAUDE_DIR/settings.json"
+    if [[ ! -f "$src" ]]; then
+        echo "    [skip] settings.json (not in repo)"
+    elif [[ ! -e "$dst" ]]; then
         mkdir -p "$(dirname "$dst")"
         cp "$src" "$dst"
         bash "$REPO_DIR/normalize.sh" expand "$dst" "$CLAUDE_DIR" >/dev/null
-        echo "    [expd] $rel"
-    done
+        echo "    [seed] settings.json"
+    elif command -v python3 >/dev/null 2>&1; then
+        # Expand a temp copy of the repo settings for THIS home, then merge only
+        # the authoritative keys onto the live file (which stays the base).
+        tmp="$(mktemp)"
+        cp "$src" "$tmp"
+        bash "$REPO_DIR/normalize.sh" expand "$tmp" "$CLAUDE_DIR" >/dev/null
+        if REPO_AUTH_KEYS="$SETTINGS_AUTHORITATIVE_KEYS" \
+             python3 "$REPO_DIR/merge-settings.py" "$tmp" "$dst"; then
+            echo "    [merge] settings.json (central keys; runtime state kept)"
+        else
+            echo "    [warn] settings.json merge failed; left live file untouched"
+        fi
+        rm -f "$tmp"
+    else
+        echo "    [keep] settings.json (no python3; not clobbering runtime state)"
+    fi
     # Seed-once tier: Claude owns these at runtime -- deploy only when missing.
     for rel in "${SEED_FILES[@]}"; do
         src="$REPO_CLAUDE/$rel"
