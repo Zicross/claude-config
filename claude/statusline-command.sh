@@ -1,25 +1,25 @@
 #!/usr/bin/env bash
 # Claude Code status line
 # Layout: line1: [grey cwd] |
-#         line2: [purple model] [grey ctx bar] | [cyan branch] [last prompt H:MM] [saved:$X.XXXX] [5h:XX%] [7d:XX%]
+#         line2: [purple model] [grey ctx bar] | [cyan branch] [5h:XX%] [7d:XX%]
+#         line3: [grey 5h resets H:MM (in Xh Ym)]
 #
-# Cache display: when cache_creation_input_tokens > 0, records the current
-# wall-clock time (HH:MM) and epoch to ~/.claude/cache_last_write.ts.
-# The statusline shows "last prompt H:MM"; if the cache has expired (>300s)
-# it appends "(cold)" so the user knows the cache is stale.
-# Stale countdown/pid files from the old timer approach are cleaned up on startup.
+# Rate limits: rate_limits.{five_hour,seven_day}.used_percentage, colored
+#   green (<70%), yellow (70-90%), red (>90%). Only present for subscribers
+#   after the first API response; segments are silently omitted when absent.
+# Reset time: rate_limits.five_hour.resets_at (ISO-8601, nullable) rendered as
+#   local wall-clock plus a countdown. Omitted entirely if the field is null.
 #
-# Savings: per-call dollar savings from cache reads vs. paying full price.
-#   Formula: savings = cache_read_tokens * base_input_rate * 0.90
-#   (cache reads cost 10% of base, so each cached token saves 90% of base rate)
-# Rate limits: rate_limits.five_hour and rate_limits.seven_day used_percentage,
-#   colored green (<70%), yellow (70-90%), red (>90%).
-#
-# Per-token rates ($/MTok) as of 2026-04:
-#   claude-opus-4*    : input $15, output $75
-#   claude-sonnet-4*  : input $3,  output $15
-#   claude-haiku-4*   : input $1,  output $5
-#   (fallback for unknown models: Sonnet rates)
+# REMOVED 2026-07-25: the "last prompt H:MM" and "saved:$X.XXXX" segments.
+#   - "last prompt" marked the cache (cold) after 300s, but this CLI writes the
+#     prompt cache at a ONE HOUR ttl (usage.cache_creation.ephemeral_1h_input_tokens
+#     is the populated field; ephemeral_5m is 0). It was calling caches cold ~55
+#     minutes early, so the signal was wrong more often than right.
+#   - "saved" priced cache reads off a hardcoded rate table that had drifted
+#     (it carried opus at $15/$75; the current Opus is $5/$25), and it reported
+#     one API call rather than anything cumulative.
+#   Both are gone rather than fixed: neither drove a decision, and a number
+#   nobody acts on still has to be kept correct.
 
 input=$(cat)
 
@@ -27,30 +27,21 @@ input=$(cat)
 if command -v jq >/dev/null 2>&1; then
   cwd=$(echo "$input"      | jq -r '.workspace.current_dir // .cwd // empty')
   model=$(echo "$input"    | jq -r '.model.display_name // empty')
-  model_id=$(echo "$input" | jq -r '.model.id // empty')
   used_pct=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
   ctx_size=$(echo "$input" | jq -r '.context_window.context_window_size // empty')
-  # current_usage fields — from the last API call, not session totals.
-  cache_read=$(echo "$input"    | jq -r '.context_window.current_usage.cache_read_input_tokens // empty')
-  cache_write=$(echo "$input"   | jq -r '.context_window.current_usage.cache_creation_input_tokens // empty')
-  input_tokens=$(echo "$input"  | jq -r '.context_window.current_usage.input_tokens // empty')
-  output_tokens=$(echo "$input" | jq -r '.context_window.current_usage.output_tokens // empty')
   # Rate limit fields — only present for subscribers after first API response.
-  five_hr_pct=$(echo "$input"  | jq -r '.rate_limits.five_hour.used_percentage // empty')
+  five_hr_pct=$(echo "$input"   | jq -r '.rate_limits.five_hour.used_percentage // empty')
+  five_hr_reset=$(echo "$input" | jq -r '.rate_limits.five_hour.resets_at // empty')
   seven_day_pct=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty')
 else
   # Fallback: simple grep-based extraction for string fields only.
   extract() { echo "$input" | grep -o "\"$1\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" | head -1 | sed 's/.*:.*"\(.*\)"/\1/'; }
   cwd=$(extract "current_dir")
   model=$(extract "display_name")
-  model_id=$(extract "id")
   # Numeric fields are unreliable without jq; leave empty so segments are silently omitted.
-  used_pct=""; ctx_size=""; cache_read=""; cache_write=""; input_tokens=""; output_tokens=""
-  five_hr_pct=""; seven_day_pct=""
+  used_pct=""; ctx_size=""
+  five_hr_pct=""; five_hr_reset=""; seven_day_pct=""
 fi
-
-# Resolve user
-user=$(whoami 2>/dev/null)
 
 # Shorten cwd: replace home prefix with ~
 case "$cwd" in
@@ -93,74 +84,15 @@ else
 fi
 [ -n "$limit_label" ] && bar="${bar}${limit_label}"
 
-# ---------------------------------------------------------------------------
-# Per-token rates (micro-dollars per token = $/MTok * 1_000_000 / 1_000_000)
-# We work in nano-dollars (1e-9 $) to avoid bash integer truncation on small counts.
-# rate_input_nd = base input rate in nano-dollars per token
-# ---------------------------------------------------------------------------
-# Defaults to Sonnet if model not recognized.
-rate_input_nd=3000   # $3/MTok  = 3000 nano-dollars/token  (Sonnet fallback)
-case "$model_id" in
-  claude-opus-4*)   rate_input_nd=15000 ;;  # $15/MTok
-  claude-sonnet-4*) rate_input_nd=3000  ;;  # $3/MTok
-  claude-haiku-4*)  rate_input_nd=1000  ;;  # $1/MTok
-esac
-
-# Cache display — shows wall-clock time of the last cache write so the user
-# can mentally compare against their current clock (5-minute warm window).
-# Shows nothing if no API call has happened yet (current_usage is null).
-
-CACHE_TS_FILE="$HOME/.claude/cache_last_write.ts"
-CACHE_TTL=300   # Anthropic cache TTL in seconds
-
-# Clean up stale files from the old background-timer approach.
-rm -f "$HOME/.claude/cache_countdown.txt" \
+# Clean up state files left by the removed cache/savings segments and the older
+# background-timer approach before that. Harmless if already gone.
+rm -f "$HOME/.claude/cache_last_write.ts" \
+      "$HOME/.claude/cache_countdown.txt" \
       "$HOME/.claude/cache_timer.pid" 2>/dev/null
-
-cache_seg=""
-savings_seg=""
-
-# If a new cache write happened this call, record epoch + HH:MM wall-clock time.
-if [ -n "$cache_write" ] && [ "$cache_write" -gt 0 ] 2>/dev/null; then
-  now_ts=$(date +%s)
-  now_hhmm=$(date +%-H:%M 2>/dev/null || date +%H:%M)
-  printf '%s\n%s\n' "$now_ts" "$now_hhmm" > "$CACHE_TS_FILE" 2>/dev/null
-fi
-
-# Build cache segment from the stored timestamp file.
-if [ -f "$CACHE_TS_FILE" ]; then
-  last_write=$(sed -n '1p' "$CACHE_TS_FILE" 2>/dev/null)
-  last_hhmm=$(sed -n '2p' "$CACHE_TS_FILE" 2>/dev/null)
-  now=$(date +%s 2>/dev/null)
-
-  if [ -n "$last_write" ] && [ -n "$last_hhmm" ] && [ -n "$now" ] && \
-     [ "$now" -ge "$last_write" ] 2>/dev/null; then
-    elapsed=$(( now - last_write ))
-    if [ "$elapsed" -gt "$CACHE_TTL" ]; then
-      # Stale: show time but mark cold so user knows it expired.
-      cache_seg=" \033[90m│ last prompt ${last_hhmm} \033[31m(cold)"
-    else
-      cache_seg=" \033[90m│ last prompt \033[36m${last_hhmm}"
-    fi
-  fi
-fi
-
-# Savings calculation — based on last API call's cache_read tokens.
-if [ -n "$cache_read" ] && [ "$cache_read" -gt 0 ] 2>/dev/null && command -v awk >/dev/null 2>&1; then
-  savings_dollars=$(awk -v cr="$cache_read" -v nd="$rate_input_nd" \
-    'BEGIN { printf "%.4f", cr * nd * 90 / 100 / 1000000000 }')
-  # Only display if non-trivial (savings >= $0.0001)
-  nonzero=$(awk -v s="$savings_dollars" 'BEGIN { print (s >= 0.0001) ? "1" : "0" }')
-  if [ "$nonzero" = "1" ]; then
-    savings_seg=" \033[32msaved:\$${savings_dollars}"
-  fi
-fi
 
 # ---------------------------------------------------------------------------
 # Rate limit segments — five_hour and seven_day used percentages.
 # Color: green <70%, yellow 70-90%, red >90%.
-# These fields are only present for claude.ai subscribers after the first API
-# response; the segment is silently omitted when absent.
 # ---------------------------------------------------------------------------
 _rl_color() {
   local pct="$1"
@@ -189,11 +121,75 @@ if [ -n "$seven_day_pct" ] && command -v awk >/dev/null 2>&1; then
 fi
 
 # ANSI colors
-G="\033[32m"   # green
 P="\033[35m"   # purple
 D="\033[90m"   # dim grey
 C="\033[36m"   # cyan
 R="\033[0m"    # reset
+
+# ---------------------------------------------------------------------------
+# 5-hour reset line — wall-clock time the window rolls over, plus a countdown.
+#
+# Rendered whenever rate-limit data is present AT ALL, not only when resets_at
+# parses. A line that silently vanishes is indistinguishable from a status line
+# that is not running the script you think it is — which is exactly the hour
+# that was lost getting here (the managed /etc/claude-code policy points at
+# /opt/claude-config, so a ~/.claude edit changes nothing). If the field is
+# missing the line says so; absence of the whole line then means something
+# structural, not a null field.
+# ---------------------------------------------------------------------------
+
+# Which clock to render the reset time on. THE BOX IS Etc/UTC, so plain `date`
+# printed UTC and read as a bug (2026-07-25). There is no auto-detect available:
+# TZ is unset, /etc/localtime is UTC, and sshd's AcceptEnv does not forward TZ
+# from the client, so nothing here knows where the operator is. Precedence:
+#   CLAUDE_STATUSLINE_TZ  -- explicit override, per user
+#   TZ                    -- follows the shell env if it is ever set
+#   America/Phoenix       -- the default (and MST year-round: no DST edge cases)
+# %Z prints the abbreviation alongside, so a wrong zone is visible rather than
+# silently misleading -- which is the failure this replaces.
+STATUSLINE_TZ="${CLAUDE_STATUSLINE_TZ:-${TZ:-America/Phoenix}}"
+
+reset_line=""
+if [ -n "$five_hr_pct" ]; then
+  if [ -n "$five_hr_reset" ]; then
+    # resets_at is not always an ISO string. The CLI carries a `Math.round(Number(...))`
+    # path for it, so it can arrive as a numeric epoch -- which `date -d` REJECTS
+    # outright (`date -d 1753430400` is an error, not a timestamp). Unhandled, that
+    # fell through to the raw-value branch and printed something that reads exactly
+    # like a UTC code, which is what was reported on 2026-07-25.
+    case "$five_hr_reset" in
+      *[!0-9]*)                                   # has non-digits -> a date string
+        reset_epoch=$(date -d "$five_hr_reset" +%s 2>/dev/null) ;;
+      *)                                          # all digits -> epoch s or ms
+        if [ "$five_hr_reset" -gt 99999999999 ] 2>/dev/null; then
+          reset_epoch=$(( five_hr_reset / 1000 ))
+        else
+          reset_epoch="$five_hr_reset"
+        fi ;;
+    esac
+    now_epoch=$(date +%s 2>/dev/null)
+    if [ -n "$reset_epoch" ] && [ -n "$now_epoch" ]; then
+      reset_hhmm=$(TZ="$STATUSLINE_TZ" date -d "@$reset_epoch" '+%-I:%M %p %Z' 2>/dev/null \
+                   || TZ="$STATUSLINE_TZ" date -d "@$reset_epoch" '+%I:%M %p %Z')
+      remaining=$(( reset_epoch - now_epoch ))
+      if [ "$remaining" -gt 0 ]; then
+        rh=$(( remaining / 3600 ))
+        rmin=$(( (remaining % 3600) / 60 ))
+        if [ "$rh" -gt 0 ]; then countdown="${rh}h ${rmin}m"; else countdown="${rmin}m"; fi
+        reset_line="\n${D}5h resets ${C}${reset_hhmm}${D} (in ${countdown})${R}"
+      else
+        # Past the reset instant but the payload has not refreshed yet.
+        reset_line="\n${D}5h window resetting${R}"
+      fi
+    else
+      # Present but not a timestamp `date` understands — show it raw rather than
+      # dropping it, so the format is visible and fixable.
+      reset_line="\n${D}5h resets ${C}${five_hr_reset}${R}"
+    fi
+  else
+    reset_line="\n${D}5h resets: not reported by the CLI${R}"
+  fi
+fi
 
 # Build segments
 left="${D}${cwd}"
@@ -203,5 +199,12 @@ mid="${P}${model} ${D}${bar}"
 branch_seg=""
 [ -n "$branch" ] && branch_seg=" ${C}${branch}"
 
-output="${left} ${D}|\n${mid} ${D}|${branch_seg}${cache_seg}${savings_seg}${five_hr_seg}${seven_day_seg}${R}"
+# Separator between the branch and the usage percentages. Only when there is
+# usage to separate — otherwise line 2 ends on a bare trailing pipe.
+usage_sep=""
+if [ -n "$five_hr_seg" ] || [ -n "$seven_day_seg" ]; then
+  usage_sep=" ${D}|"
+fi
+
+output="${left} ${D}|\n${mid} ${D}|${branch_seg}${usage_sep}${five_hr_seg}${seven_day_seg}${R}${reset_line}"
 printf '%b' "$output"
