@@ -74,6 +74,15 @@ git -C /opt/claude-config pull
 `bootstrap.sh` pulls first (pass `--no-pull` to skip), so it is the single command
 to bring a machine and everyone on it fully up to date.
 
+**Permissions are self-healing, and they have to be.** root's umask on this host is
+`0027`, so a bare `sudo git pull` writes worktree files mode `640 root:root` — and
+every non-root account silently loses `claude/CLAUDE.md`, i.e. the global rules stop
+loading with no error anywhere. That happened on 2026-08-16. `githooks/post-merge`
+now runs `chmod -R a+rX` after any pull or checkout, and `bootstrap.sh` points git at
+it via `core.hooksPath`. **A clone made before this landed will not have `core.hooksPath`
+set** — run `bootstrap.sh` once on that host, or set it by hand. `core.sharedRepository`
+does not solve this; it governs `.git`, not the checkout (tested).
+
 ### Author a change and push
 
 ```bash

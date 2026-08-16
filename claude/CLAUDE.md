@@ -20,6 +20,11 @@
 > `/opt/claude-config`, which serves every account on this host. Edit the `claude-config` repo,
 > push, then `sudo git -C /opt/claude-config pull`. **Do not hand-edit the checkout** — a dirty
 > working tree makes that pull fail, which is the mechanism keeping all accounts in sync.
+>
+> **After pulling, confirm the file is still world-readable** (`ls -l /opt/claude-config/claude/`).
+> root's umask writes it mode 640 root-only, and every non-root account then loses these rules with
+> no error anywhere. `githooks/post-merge` now repairs this automatically on any pull; the check is
+> here because the failure is silent and total when the hook is missing on a host.
 
 - For judgment- or deliverable-driven work, drive it directly; deterministic code is legitimate only for frozen-format artifacts, verification, or disposable self-checks. Before creating or extending persistent automation that generates the deliverable, state why a fixed layer fits that specific piece and get explicit approval.
 - Be direct and honest: state uncertainty, tradeoffs, and bad news plainly. Do not cheerlead or pad.
