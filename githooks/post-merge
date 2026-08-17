@@ -1,0 +1,21 @@
+#!/usr/bin/env sh
+# Keep the shared checkout readable by every account after ANY pull or checkout.
+#
+# WHY THIS EXISTS. root's umask on the deploy host is 0027, so `sudo git pull`
+# writes worktree files mode 640 root:root. Every non-root account then silently
+# loses read access to claude/CLAUDE.md — the global rules stop loading, with no
+# error anywhere and nothing in the file to say it happened.
+#
+# MEASURED 2026-08-16: a routine `sudo git -C /opt/claude-config pull` deployed
+# the global instructions unreadable to both `dev` and `mattdev`.
+#
+# bootstrap.sh has always chmod'd the tree (and still does). The gap was that the
+# documented shortcut — and the line bootstrap.sh itself prints on exit — is a bare
+# `git pull`, which skipped that step. A hook fires whichever command pulls, which
+# is the difference between a rule that is enforced and one that is remembered.
+#
+# NOT fixable with core.sharedRepository: tested both `world` and unset, worktree
+# files came out 640 either way. That setting governs .git, not the checkout.
+set -eu
+root="$(git rev-parse --show-toplevel)"
+chmod -R a+rX "$root"

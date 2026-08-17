@@ -24,6 +24,15 @@ echo "==> Shared Claude config installer"
 echo "    repo: $REPO_DIR"
 echo ""
 
+# ── Self-healing permissions on every future pull ──────────────
+# The chmod below runs only when bootstrap runs. The documented shortcut is a bare
+# `git pull` (see the closing message), which skipped it and silently deployed an
+# unreadable CLAUDE.md on 2026-08-16. githooks/post-merge repairs the tree after
+# ANY pull or checkout; this points git at it. See that hook for the full reason.
+if [[ -d "$REPO_DIR/githooks" ]]; then
+    git -C "$REPO_DIR" config core.hooksPath githooks || true
+fi
+
 # ── Refresh the shared checkout ────────────────────────────────
 if $PULL && git -C "$REPO_DIR" remote get-url origin &>/dev/null; then
     echo "==> Pulling latest config..."

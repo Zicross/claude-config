@@ -4,12 +4,12 @@ runtime-owned state.
 
     merge-settings.py <repo-settings-expanded> <live-settings>
 
-The LIVE file is the base: everything Claude Code writes at runtime
-(enabledPlugins, model, effortLevel, tui, spinnerVerbs, ...) is preserved.
+The LIVE file is the base: model, effortLevel, permission mode, TUI, and other
+runtime preferences are preserved unless explicitly listed as central keys.
 Only the keys named in the REPO_AUTH_KEYS env var (space-separated) are taken
-from the repo copy, and only when the repo actually defines them. This lets
-central config (permissions, statusLine, marketplaces, update policy) propagate
-on every deploy while personal/runtime settings stay put.
+from the repo copy, and only when the repo actually defines them. This lets the
+minimal central policy (status line, update policy, and an empty global plugin
+surface) propagate while model, effort, permission, and UI choices stay local.
 
 Writes atomically; on any error nothing is written and it exits non-zero, so the
 caller can leave the live file untouched.

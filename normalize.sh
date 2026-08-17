@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pure-Bash path normalization for sync.sh (replaces the old normalize.js).
+# Pure-Bash path expansion for portable Claude settings.
 # No Node, no Python, no sed — runs on a bare box and preserves bytes exactly.
 #
 # Usage: normalize.sh <normalize|expand> <file> [claude_home]
