@@ -4,16 +4,11 @@
 # Usage: deploy-claude-config.sh <home-dir> [--skel]
 #
 # Two tiers:
-#   symlink  -> CLAUDE.md, statusline-command.sh, skills/, commands/, agents/
+#   symlink  -> CLAUDE.md, statusline-command.sh, skills/
 #               (never written by Claude at runtime; symlinked to the shared repo
 #                so `git pull` in the repo updates every user instantly)
 #   copy+exp -> settings.json
-#               (repo copy authoritative; path-expanded for this home)
-#   seed-once -> plugins/installed_plugins.json, plugins/known_marketplaces.json
-#               (Claude OWNS these at runtime: installed plugin versions +
-#                marketplace state. Deployed ONLY when absent, so a login-hook
-#                redeploy never reverts live plugin/marketplace state. The repo
-#                copy is the provisioning manifest read by restore-plugins.sh.)
+#               (selected repo keys authoritative; other live preferences kept)
 #
 # Run by root for another user's home -> files are chown'd to that user.
 # Run by a user for their own home (e.g. from the login hook) -> no chown needed.
@@ -34,18 +29,14 @@ fi
 
 CLAUDE_DIR="$HOME_DIR/.claude"
 
-SYMLINK_ITEMS=(CLAUDE.md statusline-command.sh skills commands agents)
-# settings.json is MERGED, not overwritten: the keys below are taken from the
-# repo (central config), everything else -- enabledPlugins, model, effortLevel,
-# UI prefs -- is preserved from the live file Claude Code writes at runtime.
-# Move a key in/out of this list to change what central config controls.
-SETTINGS_AUTHORITATIVE_KEYS="permissions statusLine extraKnownMarketplaces autoUpdates autoUpdatesChannel"
-# Runtime-owned by Claude Code; deployed only if ABSENT (seed once), never
-# overwritten -- otherwise every login reverts plugin versions + marketplace
-# state and the plugin manager reports corrupted marketplaces.
-SEED_FILES=(plugins/installed_plugins.json plugins/known_marketplaces.json)
+SYMLINK_ITEMS=(CLAUDE.md statusline-command.sh skills)
+# The live file is the base. Central config owns only the minimal cross-account
+# policy below. In particular, it does not force a model, effort level, TUI, or
+# permission mode. Empty plugin/marketplace maps deliberately retire the old
+# globally provisioned plugin surface; projects may still configure their own.
+SETTINGS_AUTHORITATIVE_KEYS="statusLine extraKnownMarketplaces enabledPlugins autoUpdates autoUpdatesChannel"
 
-mkdir -p "$CLAUDE_DIR/plugins"
+mkdir -p "$CLAUDE_DIR"
 
 # ── Symlink tier ───────────────────────────────────────────────
 for item in "${SYMLINK_ITEMS[@]}"; do
@@ -60,6 +51,16 @@ for item in "${SYMLINK_ITEMS[@]}"; do
     fi
     ln -sfn "$src" "$dst"
     echo "    [link] $item"
+done
+
+# Remove only obsolete links previously managed by this repository. Preserve
+# any real per-user directory or link with a different target.
+for item in commands agents; do
+    dst="$CLAUDE_DIR/$item"
+    if [[ -L "$dst" && "$(readlink "$dst")" == "$REPO_CLAUDE/$item" ]]; then
+        rm "$dst"
+        echo "    [drop] $item (retired global surface)"
+    fi
 done
 
 # ── Copy + expand tier ─────────────────────────────────────────
@@ -90,20 +91,6 @@ if ! $SKEL; then
     else
         echo "    [keep] settings.json (no python3; not clobbering runtime state)"
     fi
-    # Seed-once tier: Claude owns these at runtime -- deploy only when missing.
-    for rel in "${SEED_FILES[@]}"; do
-        src="$REPO_CLAUDE/$rel"
-        dst="$CLAUDE_DIR/$rel"
-        [[ -f "$src" ]] || { echo "    [skip] $rel (not in repo)"; continue; }
-        if [[ -e "$dst" ]]; then
-            echo "    [keep] $rel (runtime-owned, exists)"
-            continue
-        fi
-        mkdir -p "$(dirname "$dst")"
-        cp "$src" "$dst"
-        bash "$REPO_DIR/normalize.sh" expand "$dst" "$CLAUDE_DIR" >/dev/null
-        echo "    [seed] $rel"
-    done
     # Record the deployed repo revision so the login hook can detect staleness.
     if rev="$(git -C "$REPO_DIR" rev-parse HEAD 2>/dev/null)"; then
         printf '%s\n' "$rev" > "$CLAUDE_DIR/.deployed-rev"

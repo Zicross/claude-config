@@ -131,11 +131,8 @@ R="\033[0m"    # reset
 #
 # Rendered whenever rate-limit data is present AT ALL, not only when resets_at
 # parses. A line that silently vanishes is indistinguishable from a status line
-# that is not running the script you think it is — which is exactly the hour
-# that was lost getting here (the managed /etc/claude-code policy points at
-# /opt/claude-config, so a ~/.claude edit changes nothing). If the field is
-# missing the line says so; absence of the whole line then means something
-# structural, not a null field.
+# that is not running the expected script. If the field is missing the line says
+# so; absence of the whole line then means something structural, not a null field.
 # ---------------------------------------------------------------------------
 
 # Which clock to render the reset time on. THE BOX IS Etc/UTC, so plain `date`

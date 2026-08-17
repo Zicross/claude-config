@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-# Thin launcher so the callable name is `gemma-delegate`; logic lives in the module.
-exec python3 "$(dirname "$(readlink -f "$0")")/gemma_delegate.py" "$@"
