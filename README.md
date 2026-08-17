@@ -4,7 +4,7 @@ Minimal shared Claude Code configuration for this host.
 
 ## What is global
 
-- `claude/CLAUDE.md` — the Claude carrier for FORGE's global behavioral rules.
+- `claude/CLAUDE.md` — standalone cross-project behavioral rules for Claude Code.
 - `claude/skills/academic-writing/` — the only global skill.
 - `claude/settings.json` — auto-update policy, no global plugins/marketplaces, and the status line.
 - `claude/statusline-command.sh` — local context/rate-limit display.
